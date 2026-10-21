@@ -1,0 +1,51 @@
+{
+  "name": "mbadavi-fleetpilot",
+  "productName": "FleetPilot",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "main": "electron-main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "desktop": "npm run build && electron .",
+    "desktop:portable": "npm run build && electron-builder --win portable",
+    "desktop:installer": "npm run build && electron-builder --win nsis"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0"
+  },
+  "devDependencies": {
+    "electron": "^44.9.0",
+    "electron-builder": "^26.15.3",
+    "vite": "^6.0.0",
+    "vite-plugin-pwa": "^0.21.1",
+    "vite-plugin-singlefile": "^2.3.4"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  },
+  "build": {
+    "appId": "com.fleetpilot.desktop",
+    "productName": "FleetPilot",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron-main.cjs",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
