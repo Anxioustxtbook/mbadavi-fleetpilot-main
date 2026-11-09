@@ -1,0 +1,17 @@
+let fails = 0; const ok = (n, c) => { console.log((c ? 'PASS ' : 'FAIL ') + n); if(!c) fails++; };
+const listeners = {}; globalThis.window = { addEventListener: (t, f) => { listeners[t] = f; } };
+console.error = () => {};
+const E = await import('../src/errors.js'); const shown = [];
+E.report('error', new Error('early problem'), 'x.js:1');
+E.connect(m => shown.push(m)); ok('a problem before the app was ready is shown once it is', shown.length === 1 && /early problem/.test(shown[0].msg));
+E.report('screen', new Error('Rentals broke'), 'Rentals'); E.report('screen', new Error('Rentals broke'), 'Rentals');
+ok('the same problem repeating is shown once', shown.length === 2);
+E.report('error', 'ResizeObserver loop completed with undelivered notifications.'); E.report('error', 'Script error.');
+ok('harmless browser noise is ignored', shown.length === 2);
+const order = []; ['A', 'B', 'C'].forEach(n => E.safe(n, () => { if(n === 'B') throw new Error('B failed'); order.push(n); }));
+ok('one screen failing does not stop the others', order.join('') === 'AC' && shown.some(m => m.where === 'B'));
+listeners.unhandledrejection({ reason: new Error('save promise failed') }); ok('unhandled promise rejections are caught', shown.some(m => /save promise failed/.test(m.msg)));
+listeners.error({ error: new Error('boom'), filename: 'http://x/app.js', lineno: 7 }); ok('uncaught errors are caught with file and line', shown.some(m => m.where === 'app.js:7'));
+ok('the log keeps them for "Copy details"', E.recent().length >= 5 && /Rentals broke/.test(E.detailsText()));
+for(let i = 0; i < 60; i++) E.report('error', new Error('n' + i), 'w' + i); ok('the log is capped at 30', E.recent().length === 30);
+process.exit(fails ? 1 : 0);

@@ -1,0 +1,25 @@
+<!doctype html><meta charset=utf-8><body>
+<div id="panel-fuel"></div><div id="panel-performance"></div><div id="panel-subhire"></div>
+<script type="module">
+import { initFuel } from '../src/fuelUi.js';
+import { initPerformance } from '../src/performance.js';
+import { initSubhirePanel } from '../src/subhirePanel.js';
+const db = { settings: {}, coops: [], payments: [], invoices: [],
+  vehicles: [{ id: 1, reg: 'KAA 1A' }, { id: 2, reg: 'KBB 2B', ownership: 'subhire', owner: 'Mr Owner' }],
+  clients: [{ id: 1, name: 'Walkin Co' }, { id: 2, name: 'Coop Ltd' }], drivers: [],
+  rentals: [
+    { id: 10, vehicleId: 1, clientId: 1, pickup: '2026-10-01', return: '2026-10-03', days: 3, amount: 30000, status: 'Returned', type: 'walkin' },
+    { id: 11, vehicleId: 1, clientId: 2, pickup: '2026-10-05', return: '2026-10-06', days: 2, amount: 20000, status: 'Returned', type: 'coop' },
+    { id: 12, vehicleId: 2, clientId: 1, pickup: '2026-10-07', return: '2026-10-08', days: 2, amount: 25000, status: 'Returned', type: 'walkin', subhireCost: 15000, subhireStatus: 'paid' }],
+  expenses: [
+    { id: 1, category: 'Fuel', rentalId: 10, vehicleId: 1, date: '2026-10-01', amount: 100, account: 'Ola' }, { id: 2, category: 'Fuel', rentalId: 10, vehicleId: 1, date: '2026-10-02', amount: 50, account: 'Outside' },
+    { id: 3, category: 'Fuel', rentalId: 11, vehicleId: 1, date: '2026-10-05', amount: 70, account: 'Ola' }, { id: 4, category: 'Fuel', rentalId: 12, vehicleId: 2, date: '2026-10-07', amount: 40, account: 'Outside' }, { id: 5, category: 'Fuel', vehicleId: 1, date: '2026-10-09', amount: 30 }] };
+const ctx = { getDb: () => db, fmt: n => String(Math.round(n)), markDirty(){}, renderAll(){}, guard: (d, w, fn) => fn(), uid: () => Math.random(), toast(){}, removeExpense(){}, nav: { openRecord(){}, openFuel(){} },
+  paidForRental: () => 0, owedForRental: r => r.amount, getDb2: null };
+window.errs = []; window.addEventListener('error', e => window.errs.push(String(e.message)));
+try{
+  window.F = initFuel(ctx); window.P = initPerformance(ctx); window.S = initSubhirePanel(ctx);
+  F.render(); P.render(); S.render();
+}catch(e){ window.errs.push('init: ' + e.stack); }
+window.ready = true;
+</script>

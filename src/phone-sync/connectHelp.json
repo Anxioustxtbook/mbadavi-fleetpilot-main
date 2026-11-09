@@ -1,0 +1,60 @@
+{
+  "title": "How do I connect?",
+  "intro": "The phone and this computer must be on the same network. They do not need the internet, and no mobile data is used: the records only travel between the two devices.",
+  "ways": [
+    {
+      "id": "router",
+      "title": "Same router (cable or Wi-Fi)",
+      "needs": "Nothing extra. This is the most common way.",
+      "steps": [
+        "Connect this computer to your router with a network cable, or join the router's Wi-Fi.",
+        "Connect the phone to the same router's Wi-Fi. Avoid guest or public Wi-Fi: many of them stop devices from seeing each other.",
+        "On the phone, open Connect to desktop and scan the code shown here."
+      ],
+      "worked": "The phone shows this computer's name and asks you to wait while it is approved here."
+    },
+    {
+      "id": "phone-hotspot",
+      "title": "Phone hotspot",
+      "needs": "This computer needs Wi-Fi, or a small USB Wi-Fi stick.",
+      "steps": [
+        "On the phone, switch on the hotspot (tethering).",
+        "On this computer, join the phone's hotspot like any Wi-Fi.",
+        "Close and open this window again, so the code shows the new address.",
+        "On the phone, open Connect to desktop and scan the code."
+      ],
+      "worked": "The line at the top of this window says this computer is on a network."
+    },
+    {
+      "id": "usb",
+      "title": "USB cable (tethering)",
+      "needs": "Only a USB cable and a USB port. No Wi-Fi and no router.",
+      "steps": [
+        "Plug the phone into this computer with a USB cable.",
+        "On the phone, open Settings and switch on USB tethering. Windows then sets up a small network over the cable.",
+        "Close and open this window again, so the code shows the new address.",
+        "On the phone, open Connect to desktop and scan the code."
+      ],
+      "worked": "The line at the top of this window says this computer is on a network."
+    },
+    {
+      "id": "pc-hotspot",
+      "title": "Hotspot from this computer",
+      "needs": "This computer needs a Wi-Fi adapter.",
+      "steps": [
+        "On this computer, open Windows Settings, then Network and internet, then Mobile hotspot, and switch it on.",
+        "On the phone, join the hotspot using the name and password Windows shows.",
+        "Close and open this window again, so the code shows the new address.",
+        "On the phone, open Connect to desktop and scan the code."
+      ],
+      "worked": "The line at the top of this window says this computer is on a network."
+    }
+  ],
+  "ifStuck": [
+    "If Windows asks whether to allow FleetPilot through its firewall, choose Allow on private networks.",
+    "If the phone cannot see this computer, check that both show the same Wi-Fi name, and that this window is still open.",
+    "If the camera is not allowed, type the address and the PIN shown here into the phone instead.",
+    "If nothing works, use the USB cable way: it needs no Wi-Fi at all."
+  ],
+  "noNetwork": "No network was found on this computer. The easiest fix is the USB cable way below: it needs no Wi-Fi and no router."
+}

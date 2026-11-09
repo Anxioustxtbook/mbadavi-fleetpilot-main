@@ -1,0 +1,328 @@
+V22 (31 Oct 2026) - THE DATABASE IS THE WORKING PLACE FOR THE WHOLE YEAR; SAVING IS QUIET
+NEW FILES: test/yearround.test.mjs
+CHANGED:   src/ledger.js, src/recover.js, index.html
+- No more "Start November?" pop-up at the first open of a new month. The small banner stays; nothing is asked.
+- The status line keeps its "saving..." flicker; the "last saved" time is gone. Red "NOT saved" only when the app truly cannot save.
+- RENT IS AN EXPENSE: the standing monthly rent (Pilot > Overview) now counts in Expenses and Net on the Dashboard (all-time and by period, and the comparison with the last period) and in Reports. One line per month, dated the 1st; a month with a typed Rent expense uses that and not the standing amount (never twice). Not added to a single car's figures (rent is an office cost).
+- FASTER: after a change only the screen you are on is redrawn. Bookings, Rentals, Expenses, Payments, Dashboard and Reports are drawn when you open them (the lists with thousands of rows were being rebuilt on every save).
+- RECOVER AN EARLIER COPY opens at once (Reset box shown immediately, copies filled in as they are read).
+- MENU ORDER: Reports and Analysis now come last in the main list, after Sub-hire (index.html only).
+- Checked: every record of every month is loaded on open (Dashboard cards open on all-time totals; Reports/Dashboard have Daily, Weekly, Monthly, Yearly, Custom).
+- Excel only when you ask: File & backup > Save (to Excel) / Import. The database itself never needs them.
+TESTED: new test/yearround.test.mjs (60 rentals Jan-Oct, 60 saves, close, reopen, "update": all there, ONE database file, at most one safety copy a month) and all older node tests.
+NOT TESTED: the built app in a browser (npm was not reachable here), the real .exe.
+NOT CHANGED, YOUR CALL: records dated before the open month still show a lock and ask "Continue?" when edited (admin PIN rules unchanged).
+
+V21 (31 Oct 2026) - THE DATABASE IS A FILE THAT OPENS BY ITSELF, SAVES ON EVERY CHANGE, AND SURVIVES UPDATES (.exe)
+NEW FILES: src/dbPersist.js, src/importMarks.js, src/today.js, test/dbstore.test.mjs, test/dbpersist.test.mjs, test/import-save.test.mjs
+CHANGED:   desktop/ledgerFile.cjs + ledgerPreload.cjs (rewritten, same names), desktop/README.txt, src/ledger.js, src/pilot.js, src/recover.js, src/importer/merge.js, src/payUi.js, src/main.js, index.html
+REMOVED:   src/autoFile.js and test/autofile.test.mjs (it already failed in v20), the Excel auto file, the 30-second timer and its Pilot setting, the daily copies,
+           the copy kept before import / reset / open, the Excel-file red messages.
+- Database: %APPDATA%\FleetPilot\databases\<name>.fpdb.json. Each write is temp file, flush, rename; a briefly locked file is retried quietly. Saved about half a second after a change, and again as the window closes.
+- Opens by itself before anything is shown. Pilot > Database (behind the admin PIN): which database opens at start (default: the last one used), open another, new database.
+- First start after the update: the old browser storage is moved into the file once; afterwards it is only a fallback (offered if the file is missing or damaged).
+- Format version in the file. A newer program upgrades an older file step by step (one copy of the old file is kept, named with its version, only then). An older program refuses a newer file with a plain message and never writes to it.
+- One safety copy per month (first save of the month, the file as it stood before that save), listed in Recover an earlier copy: "Open as a new database" (replaces nothing) or "Replace this one" (asks first).
+- Import adds to the open database, keeps no Excel file, and never overwrites or removes a record you edited (hidden fingerprint; nothing is shown in the lists). Importing twice adds nothing.
+- Dashboard: Today section (going out, due back, late, bookings in the next 5 days).
+- Messages: red only when the app truly cannot save (the same failure twice in a row); yellow when the disk is nearly full.
+TESTED: all node tests; the app was built with Vite and run in a headless browser with a stand-in for the desktop bridge (start, add, reload, record still there).
+NOT TESTED: inside the real .exe, a real installer update, the Windows file lock. Reset, Open file and Import no longer keep a copy first; only the monthly copy remains.
+
+V20 (29 Oct 2026) - CATEGORY CHIPS: ONE TAP TO FILTER, WITH COUNTS (Fuel, Performance, Sub-hire, Pages > Invoices)
+NEW FILES: src/chips.js, test/chips.test.mjs, test/chips-harness.html, test/chips-browser.py
+CHANGED:   src/fuelUi.js, src/performance.js, src/subhirePanel.js, src/pages.js
+- A row of buttons above the table, each with a count: tap one to show only that category, tap it again (or All) to clear. Counts follow the other chips you chose
+  (after Coop, the Ola / Outside / Mixed counts are for Coop only). Totals, footers and cards follow the rows shown. Nothing is stored: chips only choose what is shown.
+- FUEL, fills table: Show [All | Ola | Outside | Mixed | Untagged]. MIXED = the fills of rentals that were filled on Ola AND outside. They stay in their own account too,
+  so the Ola / Outside counts still match the cards. Fills of a mixed rental carry a "mixed" tag.
+- FUEL, audit per rental: Fuel source [Ola | Outside | Mixed | Untagged] and Rental type [Walk-in | Coop | Sub-hire | Taxi | Self-drive].
+- PERFORMANCE: Client type, Fuel source (Ola / Outside / Mixed / Untagged / No fuel) and Car (Own cars / Sub-hire).
+- SUB-HIRE: Owner pay (Paid / Not cleared / Cancelled), Car (Owner cars / One-off cars), Driver (Driver picked / No driver yet).
+- PAGES > INVOICES: Status (Paid / Unpaid) and Rentals (Tied to rentals / No rentals found).
+- The old drop-down lists stay where they were; they and the chips show the same choice.
+TESTED: all node tests pass (chips.test.mjs new, 11 checks). The three screens were also run in a real browser (Chromium, fake data): chips, counts, tap-again-clears, Mixed fills, no errors.
+Pages > Invoices checked in node only. NOT RUN: the older browser*.py tests (they need your built app), real ExcelJS Save, the .exe.
+NO DATA CHANGE: nothing in the database or the Excel file format changed, so v19 files open as before.
+
+V19 (29 Oct 2026) - the status line shows only "Updating file" (no time, no path). Red messages stay for a real problem (file open in Excel, window empty).
+
+V18 (29 Oct 2026) - THE AUTO FILE UPDATES IN SECONDS, YOU CHOOSE THE NUMBER
+CHANGED: src/autoFile.js, src/pilot.js, src/ledger.js, test/autofile.test.mjs
+- Pilot, top line: "Excel file updates every [30] seconds". Choose between 10 and 600; 30 until you change it (it was 2 minutes). Saved with the other settings in the Excel file.
+- The status line now says "update due within 30 sec" (your number).
+- The program checks every 5 seconds whether something changed, so the file follows your number closely; nothing is written when nothing changed, and never when the window is empty.
+- Closing the program still writes one last time at once.
+
+V17 (29 Oct 2026) - ERROR HANDLING AND SPEED
+NEW FILES: src/errors.js, test/errors.test.mjs, test/perf.mjs (run: node test/perf.mjs 20000)
+CHANGED:   src/main.js, src/ledger.js, src/fuelCore.js, src/coop.js, src/ownerSheets.js
+1. ERRORS: before this, an error nobody caught vanished silently (there was no global handler). Now any uncaught error or failed promise shows a red bar in plain words:
+   what failed, that the app is still running, and whether your last change is saved ("saved on this device" / "being saved" / "NOT saved: use File > Save database file").
+   "Copy details" copies the last 30 problems (kept on this device). The same problem repeating is shown once. A "not being saved" warning is never replaced by it.
+2. SCREENS DRAW ON THEIR OWN: renderAll draws each screen separately, so if Rentals fails to draw, Payments, Dashboard, Pilot and the rest still draw (before, the first failure stopped everything after it).
+3. SPEED: Coop, Sub-hire/Performance fuel figures and the Excel sheets looked every rental up by scanning all expenses, so they got slower the more records there were (CAR PERFORMANCE sheet at 20,000 rentals: 6.3 s -> 0.55 s;
+   COOP sheet 2.1 s -> 0.13 s; same numbers, checked by the existing tests). They now use a lookup built once (fuelIndex in fuelCore.js). Results are identical.
+NOT CHANGED: how the screens redraw after every change (not measurable here without a browser); the Save still builds the whole workbook in one go.
+
+V16 (29 Oct 2026) - no storage space is shown any more in Recover an earlier copy (neither for the folder files nor for the browser copies). Multi-date ranges (8TH-9TH) and figure formatting (1,250,000) live only in the Excel readable sheets; the database itself keeps raw dates and numbers.
+
+V15 (29 Oct 2026) - THE FOLDER KEEPS YOUR FILES: Documents\FleetPilot, Reset-proof, listed in Recover an earlier copy
+CHANGED: src/autoFile.js (rewritten), src/recover.js, src/ledger.js, src/importUi.js, desktop/ledgerFile.cjs + ledgerPreload.cjs (rewritten), desktop/README.txt, test/autofile.test.mjs
+- Import Excel: the file you import is also kept untouched in Documents\FleetPilot\Imported, and the working file is named after it ("PERFOMANCE_2026 (FleetPilot).xlsx").
+- Open database file: that file becomes the working file in the folder.
+- Working file is rewritten by itself at most every 2 minutes after a change and on closing; a name already used gets (2), (3): one file never overwrites another.
+- RESET DOES NOT TOUCH THE FOLDER. After a reset you can import or start a new file; the new file gets its own name when data is next added.
+- File > Recover an earlier copy now begins with "Files in Documents\FleetPilot": Your files, Imported originals, Daily backups, with Restore and Delete (Delete = Recycle Bin) and Open the folder.
+  Deleting the file you are working on: nothing is recreated until something new is added.
+- On start: if the window is empty the last working file is offered (not after a deliberate reset).
+- Browser-storage copies stay as the second safety net. Still needs the 3 lines in your Electron main/preload (desktop/README.txt) and a rebuild; NOT tested inside a real .exe.
+
+V14 (28 Oct 2026) - idle screen default is now 5 minutes (src/idle.js, src/pilot.js). A value you already typed in Pilot is kept: if Pilot still shows 7, change it to 5 there.
+
+V13 (28 Oct 2026) - BALANCE CHECK IN PERFORMANCE, AUTO FILE Documents\FleetPilot\ledger.xlsx
+NEW FILES: src/balance.js, src/autoFile.js, desktop/ledgerFile.cjs, desktop/ledgerPreload.cjs, desktop/README.txt, test/balance.test.mjs, test/autofile.test.mjs
+CHANGED:   src/performance.js, src/ledger.js
+
+1. PERFORMANCE > Balance check (under Performance by car): 12 read-only checks, each with a tick or cross and "Show records" for the exact lines:
+   rentals billed = paid + owed; nothing overpaid; every payment points to a rental that exists and is not cancelled; every payment has a date and amount, none in the future;
+   no invoice number twice; every invoice number on a rental is listed; no record points to a deleted car/client/rental; ids unique and next id above the highest;
+   rentals have sensible dates and an amount; coop lines agree with their rental; every fuel fill has a date and an account.
+2. AUTO FILE (inside the .exe only): ledger.xlsx in Documents\FleetPilot is rewritten by itself at most every 2 minutes after a change, and once more on closing.
+   Temp file then rename, a daily copy in Backups (14 days), red message if Excel has it open, an empty window never overwrites a file that has data,
+   on start the file is offered when the window is empty or the file was changed outside. The status line shows "Excel file ... updated 14:32".
+   THE DESKTOP SIDE IS NOT ACTIVE UNTIL YOU ADD IT: see desktop/README.txt (3 lines in your Electron main and preload, then rebuild the .exe). Idle splash is unchanged and still covers Pilot.
+TESTED: node tests balance and autofile (fake desktop bridge), older node tests. NOT TESTED: inside a real Electron .exe, real ExcelJS save.
+
+V12 (28 Oct 2026) - SAVED FILE READS LIKE YOUR WORKBOOK, COOP EXCEL = CLIENT'S SHEET
+NEW FILE: src/ownerSheets.js, test/ownersheets.test.mjs
+CHANGED:  src/fileLayout.js, src/ledger.js, src/coop.js
+
+1. SAVE: the saved Excel now starts with sheets laid out like PERFOMANCE_2026, drawn from the database at the moment of Save:
+   CAR PERFORMANCE, COOP, FUEL SHEET, CARWASH, TRANSPORT, GARAGE, AIRPORT FEE, ALLOWANCE, INVOICE, INSURANCE SHEET, OCHWADA, WALK-IN (your Sheet2),
+   OVERVIEW (your Sheet1), then the SUBHIRE, SUBHIRE DRIVER and LOAN sheets that were already there.
+   Each is month by month: a band "SEPTEMBER 2026 (n)", its rows, "SEPTEMBER 2026 total", then TOTAL at the bottom. Real dates, ranges as 8TH-9TH, thousands separators, frozen heading.
+   They are for reading. The data tabs (Vehicles, Rentals ...) are still saved in full, so Open restores everything as before.
+   File > Save database file > Tabs and fields lets you move, hide or choose columns for any of them.
+   "FUEL SHEET" and "INSURANCE SHEET" are named that way only because the data tabs Fuel and Insurance already use the plain names.
+2. COOP > Excel schedule now follows the client's Car_hire_schedule sheet: Trebuchet MS 12, blue heading, thin borders, one-day dates as real dates (d-mmm-yy),
+   ranges as 01-03/09/2026, charge as =3500*3*1.16 when VAT view is on, a totals line under Charge and Allowance, then TOTAL. Fuel, Driver and Total (grey) follow the client's columns;
+   the new button "Excel: office columns" switches them off when the file goes to the client.
+NOT TESTED: saving with the real ExcelJS (not available here) - the sheet builders were run against a stand-in workbook and the older node tests still pass. Please Save once, open the file in Excel and tell me how each sheet looks.
+NOT DONE YET: the per-car sheets (KDQ 652A, KDU 834B ...), the LOAN layout side by side like yours, CHAMA (removed from the app), and the extra columns to the right of CAR PERFORMANCE (per-car amounts).
+
+FleetPilot - Calendar, paid tick, invoices, payments from Excel, Pages, clickable cards, idle screen
+
+HOW TO APPLY
+1. Close FleetPilot and back up your project folder.
+2. Unzip this over your project folder (it replaces index.html and files in src/, adds new files). No new packages needed.
+3. Preview: npm run dev     Rebuild: 1-BUILD-ONCE.bat   (or npm run desktop:portable for the .exe)
+Your saved files open as before; the new Invoices sheet, holiday corrections and idle minutes are saved inside the file.
+
+NEW FILES: src/holidays.js, src/calendar.js, src/idle.js, src/pages.js, src/importer/invoices.js, src/importer/payments.js
+CHANGED:   index.html, src/ledger.js, src/pilot.js, src/summary.js, src/importUi.js, src/importer/index.js, merge.js, rentals.js
+
+WHAT'S NEW
+1. Calendar (sidebar, and a Calendar button on Bookings): a thin line per car in its own colour for every booking
+   (solid) and rental (dashed, optional), car drop-down (one car or all), Free/Booked on each day for one car,
+   click a day to see who has it and "+ Book for this day". Kenyan public holidays on the days, for any year (year picker
+   to +9 years). A holiday on a Sunday moves to Monday. Idd dates are estimates: correct them on the calendar once announced.
+2. Idle screen: after 10 minutes with no use (change it in Pilot, 0 = never) the opening splash returns and stays until
+   a click, key or tap; the admin area locks again.
+3. Paid tick on Rentals (first column). Payments still decide Paid and Owed: ticking an unpaid rental opens the payment
+   form with the amount owed filled in; the tick appears once the payment is saved. Ticking a paid rental shows its payments.
+   Rentals also has filters (payment, status, car, dates) and "Mark shown as paid..." for rentals you know were paid.
+   The Rentals header now lines up with the rows (a "Payment" column was missing).
+4. Excel import now reads the INVOICE sheet (126 invoices, KSh 15,116,386; unpaid KSh 776,446; every monthly TOTAL and VAT matches your sheet)
+   and turns everything listed as PAID into Payments:
+     - invoices that match a set of rentals exactly (the rental gets that Invoice No),
+     - other paid invoices applied to that client's oldest rentals (marked "matched by client"),
+     - paid money that fits no rental is kept as "not linked" so nothing is lost,
+     - OCHWADA statement payments, after his balance brought forward.
+   Each payment shows "where listed" (e.g. INVOICE row 12 - invoice 1130); click it to open that place.
+   Payments are in the same terms as Billed (VAT excluded; VAT stays on the invoice).
+   Rentals with no payment listed anywhere stay owing (721 rentals, KSh 10.65M on your file) until you tick them.
+5. Pilot > Pages = your Excel sheets as pages: Monthly progress (all vehicles or one), Fuel, Carwash, Transport, Garage,
+   Airport fee, Sub-hire driver, Allowance, Sub-hire, Insurance, Rent, Invoices (by month, like the sheet), Payments received.
+   Click any figure to list the records it adds up; click a record to open it where it is kept. Overview figures are clickable too.
+   Overview/Pages are drawn live from what you key in: add Fuel 5,000 under Expenses and that month changes straight away.
+6. Dashboard cards open their records: Revenue/Expenses/Fuel/Outstanding/On rent open Rentals or Expenses already filtered
+   (with a "Show everything" bar); Vehicles opens Vehicles; Net income opens Reports.
+
+TESTS (node test/xxx.test.mjs, from the test folder): holidays, pay, merge2, pages (562 figure-vs-records checks), billing, clients, merge.
+
+
+FUEL ACCOUNT UPDATE (27 Oct 2026)
+FUEL is now handled as an account with the fuel station, the way your sheet keeps it:
+  - Top-ups (blue figures, no plate) = money paid in. Stored in a new FuelAccount sheet inside the saved file. NOT an expense.
+  - Fills (figures with a plate) = the real fuel expense per car. Unchanged: still Expenses, category Fuel, still in every report.
+  - Opening balance (-34,773 carried from last year) is kept as one line you can edit.
+  - Balance = opening + top-ups - fills. Negative = the office is behind with the station.
+Pilot > Pages > Fuel now shows: balance cards, a month table (top-ups, fuel taken, net, balance at month end), the chosen month line by line
+like the Excel (paid in, car, fuel, running balance), add / edit / delete a top-up, the opening balance, and the old "fuel by car" table underneath.
+Click a top-up or fuel figure to see the records behind it.
+Excel import: reads the 215 top-ups (KSh 1,437,400) and the opening balance; every monthly top-up total matches your sheet. Running it again adds nothing twice.
+Nothing is removed for you. 20 fuel lines are listed again as a positive figure (rows 95-109 and 191-195): the import review screen asks about each one
+(13 are exact repeats of an earlier fill), and the Fuel page lists any same car/date/amount fills with a Delete button you press yourself.
+Idle screen default is now 7 minutes (a value you already saved in Pilot is kept).
+NEW: src/fuelAccount.js, test/fuel.test.mjs, test/browser3.py.   CHANGED: src/ledger.js, src/pages.js, src/pilot.js, src/idle.js, src/importer/expenses.js, index.js, merge.js.
+
+
+ADMIN UPDATE (25 Oct 2026): Loans, Coop, expense explorer, editable sheets, linked-data cleanup
+NEW FILES: src/cascade.js, src/links.js, src/gridEdit.js, src/loans.js, src/coop.js, src/expenseExplorer.js, test/admin.test.mjs, test/browser4.py
+CHANGED:   index.html (Coop menu item and screen), src/ledger.js, src/pilot.js, src/pages.js, src/performance.js, src/importer/admin.js, clients.js, index.js, merge.js
+
+1. EDITABLE SHEETS (everywhere below): click a cell, type, Enter. "+ Add line" adds, ✕ removes (asks first), B = bold, ◐ = highlight (click again to change colour). Totals work out again after every change. Bold/highlight are saved in the file.
+2. LOANS (Pilot > Loans): the loan list (rename a loan right there), Monthly table (months down, loans across, type the instalment with or without the minus), "Due in a month" (pick the month; day and paid-so-far are typed in), and Individuals (LAWYER, WIN, SAM...: lines per person; the person's total is the sum of their lines; add / rename / remove people).
+   Import reads the Individuals table; all 8 balances match the totals on your LOAN sheet.
+3. COOP (new menu item): every column of your COOP sheet (name, dates, days, amount, driver, allowance, fuel, cont no, department, km out/in). "Add a coop" never adds the same coop twice (same contract number, or same name + date + amount).
+   New line = "to complete": press ↗, Rentals opens filled in, choose the car, Add rental, and the two are linked. A coop rental made in Rentals gets its Coop line by itself. Editing one updates the other.
+   Import: 196 COOP lines, 153 already linked to their rental, 43 "to complete".
+4. ALL EXPENSES: button "All expenses by type" on the Expenses screen (one month at a time, ‹ › to move), and Pilot > Pages > All expenses (any range, as a whole or month by month). Press a type (Garage...) to see every line, edit or remove them. Totals equal the Overview.
+5. PERFORMANCE: click a row to open its rental; coop rows have a "Coop ↗" button; Department and KM out/in can be added as columns.
+6. LINKED DATA: deleting a car, client, driver or rental asks first ("this also deletes ...") and removes what depended on it. After every change a sweep removes anything pointing at something that no longer exists, so no "unknown" values. Renaming a client updates its invoices and coop lines.
+7. SAVE/OPEN: new sheets Coops and Individuals, new settings rowFormats and loanExtraMonths are saved inside the file.
+TESTS: node test/admin.test.mjs (and the older ones); python3 test/browser4.py (headless browser: 30 checks).
+NOT TESTED: saving to and opening from a real .xlsx (needs ExcelJS, which is not in the test setup). Please Save, close and reopen once and check Coop and Loans are still there.
+
+
+SUB-HIRE AND SELF-DRIVE UPDATE (25 Oct 2026)
+NEW FILES: src/subhireCore.js, src/subhireUi.js, src/importer/driverjobs.js, test/subhire.test.mjs, test/browser5.py
+CHANGED:   index.html, src/ledger.js, src/pages.js, src/pilot.js, src/summary.js, src/performance.js, src/importUi.js, src/importer/expenses.js, index.js, merge.js
+1. CLIENT TYPES: Coop, Walk-in, Taxi and Self-drive under Clients, each showing its own fields (Coop/Walk-in: ID, contacts, driver provided, driver phone, area; Taxi/Self-drive: ID, licence, contacts, area).
+   Import: rentals with SELF in DRIVER become Self-drive (371), also on a database imported earlier.
+2. DRIVERS: new Type (Own / Sub-hire). Rentals of a Sub-hire driver appear on Pilot > Pages > Sub-hire driver by themselves.
+3. SUB-HIRE DRIVER sheet (Pilot > Pages): driver, client, car, dates, days come from the rental. Type amount per day, status (Paid / Not cleared / Cancelled) and its date. Amount = per day x days.
+   Import ties 181 of 201 sheet lines to their rental; 20 stay as costs under Expenses and are listed in the review. Total still KSh 464,700.
+4. SUB-HIRE page (Pilot > Pages): month chips, what each owner was paid / not cleared / cancelled, how each car performed, sub-hire drivers, and an editable
+   table (job = where it worked, amount, status, date). Cancelled lines cost nothing in every figure.
+TESTS: node test/subhire.test.mjs passes. test/browser5.py: 2 checks still failing (see notes), not yet diagnosed.
+
+
+ADMIN MENU FIX (25 Oct 2026): sidebar now has an "Admin" group (Pilot, Overview, Fuel, Loans, Insurance, Chama, OCHWADA, All pages), each opening its own screen behind the PIN; sidebar made more compact.
+CHANGED: index.html, src/ledger.js
+
+
+PAYMENTS HUB (25 Oct 2026): one Add payment form (Money in / Money out) and one list with filters
+NEW FILES: src/payRoute.js, src/payUi.js, test/payroute.test.mjs, test/browser6.py
+CHANGED:   index.html, src/ledger.js, src/loans.js, src/pilot.js
+1. Money in: rental, invoice, coop/contract, client (oldest first), OCHWADA, individual, other. Money out: airport, garage, carwash, transport, maintenance, parking, salaries, utilities, bank charges, other, rent, fuel (top-up or fill), sub-hire driver, sub-hire owner, loan, individual, insurance, chama, allowance, OCHWADA.
+2. Each payment is written into the place that already feeds the totals (Expenses, Payments on the rental, Loans, Chama, Insurance, fuel account ...), so totals update at once and nothing is counted twice. Sub-hire driver/owner only ticks the job Paid with the date.
+3. The date is saved on the record: loan instalment "Paid on", chama paid date, driver/owner status date, insurance paid date, allowance date (new column allowanceDate).
+4. Unclear cases open a pop-up question (duplicate, over/part payment, several rentals owing, amount different from the ticked jobs, no car, fuel top-up or fill, no loan month, new or similar person name ...).
+5. The list shows every payment with In/Out, category, month and search; ↗ opens where it was recorded, ✕ takes it back. The old edit form opens from ✎ on a received payment. The paid tick on Rentals opens the new form.
+TESTED: node test/payroute.test.mjs passes. NOT FULLY TESTED: test/browser6.py (screen checks) was stopped before it finished; older tests were not re-run after these changes. Save and Open in a real .xlsx not tested.
+
+
+ADMIN PIN FIX (25 Oct 2026): setting the Admin PIN did nothing and edit/delete stayed blocked.
+Cause: the PIN asked for with the browser's prompt(), which the desktop .exe does not support. It now uses a box inside the page (also used for adding / renaming people on Loans). If the page was opened by network address (plain http), the PIN is hashed with a built-in fallback instead of failing.
+CHANGED: src/ledger.js, src/loans.js, src/pilot.js, test/browser*.py (they answer the new box with 1234).
+TESTS RUN: all node tests and browser.py to browser6.py pass (browser5's 2 earlier failures now pass). Save/Open in a real .xlsx still not tested.
+
+
+SAVED FILE LAYOUT, LOANS AND INVOICES (25 Oct 2026)
+NEW: src/fileLayout.js, test/browser7.py, test/harness-real.js.   CHANGED: src/ledger.js, src/loans.js, src/payRoute.js, index.html
+1. SAVED FILE: three sheets like your own workbook are now written: SUBHIRE, SUBHIRE DRIVER and LOAN (loans, monthly instalments and the individuals together).
+2. TABS AND FIELDS: File > Save database file > "Tabs and fields in the saved file". Move a tab with the arrows, untick Show to hide it in Excel, press Fields to choose which columns show.
+   Hidden tabs and columns are still saved inside the file, so Open restores everything. The Individuals data tab starts hidden because it is shown inside LOAN.
+3. LOANS: "+ Add a loan" (name, for, borrowed, instalment, first month, number of months, day due; a duplicate is refused). The amber button "A different loan format? Contact the developer"
+   opens a pop-up where you describe the loan and copy the message to send. Individuals are labelled as part of Loans, and in Payments they read "Loan: individual".
+4. INVOICES: the Invoice No box on Rentals lists every existing invoice; typing or picking one says how many other rentals already use it, so several rentals can share one invoice.
+TESTED with the real ExcelJS: Save wrote a real .xlsx, the built-in backup check found no differences, and the file was read back (tab order, hidden tabs, hidden column, sheets, rows).
+
+
+MERGE (25 Oct 2026): payments-v3 combined with "new update": free-text client types, setAdminUnlocked label, fixed data-tab order, removed-cards tray, screen accents, contrast fixes, src/data/repository.js (IndexedDB autosave).
+
+
+TABLES, CHAMA, SUB-HIRE, FUEL, SAVE UPDATE (25 Oct 2026)
+NEW FILES: src/tableTools.js, src/chama.js, test/browser8.py, test/browser9.py, test/harness-save.js, test/workbook.json
+CHANGED:   index.html (Sub-hire sidebar link, "What to save"), src/main.js, src/pilot.js, src/pages.js, src/gridEdit.js, src/ledger.js
+1. Every table: 🔍 Search button (where the table has none), totals on top for long tables (follow the search), ← Back, ↑ Top after a long scroll.
+2. Pilot > Chama: Excel-style grid (No., then Due / Paid on / Amount per round), type the real date for a late payment, colours green/amber/red,
+   + New chama, rename, next round starts by itself when the last round is fully paid.
+3. Pilot > Sub-hire tab: owners and whether paid, jobs, drivers on sub-hire cars. Also in the sidebar.
+4. Pilot > Insurance: totals per vehicle and per month at the top.
+5. Pilot > Fuel: Previous / Next month, month list, "Show all months, line by line".
+6. File & backup > Save database file > "What to save": Everything / Current month / A previous month / A whole year.
+   Yearly files group every long data sheet by month (heading, rows, month total, Excel [-]/[+] folds). Your working database is never changed by these.
+Not tested with the real ExcelJS (no internet here): please open one saved yearly file in Excel once and tell me how it looks.
+
+
+LAST UPDATE ON THE UPLOADED v4 (25 Oct 2026)
+CHANGED: src/ledger.js, src/fileLayout.js, src/payRoute.js, src/payUi.js, src/expenseExplorer.js, index.html, test/harness-real.js, test/browser7.py, test/browser9.py.   NEW: test/browser10.py
+1. EXPENSE TYPES: Expenses > Category > "Edit types" (or "New type of expense..." in the list). Add, rename (renames every expense of that type) and remove (those expenses become Other).
+   Every change asks for the admin PIN. New types show in the Expenses form, in Payments > Money out, and are saved in the file (Settings sheet), so Open brings them back.
+   The Category list also now shows types already on your expenses (Transport, Sub-hire driver ...), so editing those lines no longer loses their type.
+2. MONTH BREAK LINES: every saved database (Everything, current month, a previous month, a year) now has a heading line before each month on the data sheets
+   ("▼ OCTOBER 2026  (232)"), the rows folded under it, and a month total. Open skips these lines, so nothing is read back as a record.
+3. SUBHIRE and SUBHIRE DRIVER sheets have the same month headings and totals. SUBHIRE DRIVER also lists the "Sub-hire driver" costs keyed under Expenses
+   (marked "from Expenses"), so it matches the Sub-hire driver page; your yearly file showed it empty because no rental had a driver amount typed.
+4. DRIVERS: each driver has ✎ Edit. The details load into the form, "Save changes" asks for the admin PIN and updates the same driver (rentals keep pointing to it).
+TESTS (real ExcelJS): browser10 (new), browser6, browser7, browser8, browser9 and all node tests pass.
+Already failing in the uploaded v4 before this update (same result on the untouched upload): browser5 "client types: walkin, coop, taxi, self" (clients now have free-text types) and browser4 "clicking the next cell keeps editing".
+
+
+DATA LOST AFTER CLOSING THE WINDOW (25 Oct 2026)
+Checked: an imported + edited ledger IS kept in the browser's own storage (IndexedDB) and comes back after closing and reopening (test/persist.py, real browser profile).
+So the loss comes from where the window keeps its storage (private/cleared on exit, a different address or port each time, or the .exe not keeping its data folder), not from the save code.
+ADDED (src/ledger.js): asks the browser to keep the data permanently; a visible red notice if storage is blocked or a save fails; a notice when nothing was found on start.
+NEW TESTS: test/persist.py, test/persist2.py, test/harness-persist.js.
+
+
+V8 (26 Oct 2026) - UNTESTED IN THE SCREENS (only node tests, one browser save/reopen test)
+NEW: src/sheetSpill.js, test/drill.test.mjs, test/spill.test.mjs.   CHANGED: src/pages.js, pilot.js, loans.js, chama.js, subhireUi.js, gridEdit.js, ledger.js, data/repository.js, index.html
+1. TAP-THROUGH on Pilot: Overview "Total spent", Loans (scheduled/paid/balance, monthly, due, individuals), Insurance (totals, per car, per month, expired), Chama (saved, behind, round totals), OCHWADA (opening, charges, payments, closing), Sub-hire (owners, cars, drivers). Each opens the records behind it; "Open" jumps to the row and flashes it.
+2. DATE: File & backup and the sidebar show "Today: <date> · last saved <time>", refreshed at midnight.
+3. EXCEL CELL LIMIT: text over 30,000 characters is split into extra columns (header "name~2") on Save and joined on Open.
+4. SAVE ORDER: a queued save now takes the newest state when it runs, so it cannot overwrite the "window closing" save with older data.
+TESTS: node tests (run from inside test/) pass; drill.test.mjs 5,095 checks; spill.test.mjs; persist.py. NOT run: real ExcelJS Save/Open, browser tests of the new screens.
+
+
+V9 (26 Oct 2026) - KEYBOARD NAVIGATION, BACKGROUND MARK, TEST FIX
+NEW: src/keyNav.js, test/browser12.py.   CHANGED: index.html (background CSS at the end of the last style block), src/main.js, test/browser11.py, test/harness-persist.js, harness-real.js, harness-main.js
+1. KEYBOARD: Tab / Shift+Tab reach everything clickable (dashboard cards, editable cells, figures); a gold outline shows where you are.
+   Sidebar: Up / Down / Home / End, Enter opens. Alt+1 ... Alt+9 open the first nine screens; Alt+Up / Alt+Down previous / next screen.
+   Tables: arrow keys move between cells, rows and the buttons in a row. Enter / Space presses a figure or card.
+   Editable sheets (Loans, Coop, Chama ...): Enter or F2 edits the cell, Enter saves, Esc cancels, focus stays on the cell.
+   "/" or Ctrl+K = search.  Alt+M = jump into the screen.  Esc = close the "how this was made" list.  ? = list of shortcuts.
+   Keys are ignored while you type in a box, and while the opening / idle splash is showing.
+2. BACKGROUND MARK (Mbadavi logo): now centred in the view panel (between the sidebar and the right edge) instead of pushed to the right, larger and more visible; cards are slightly see-through (80%) so it shows behind them.
+3. TEST FIX: browser11 "Total spent opens list" was aiming at the wrong table cell, not an app fault (the Total spent figure opens its list). Test now finds it by what it is.
+TESTS: all 14 node test files pass; browser12 (keyboard, 22 checks), browser11, browser3, persist (108 drivers kept after close/reopen) pass.
+NOT RUN (by request): anything needing real ExcelJS (browser6-10): a real .xlsx Save and Open is still unproven.
+Already failing before this update (same on the untouched v8): browser4 "clicking the next cell keeps editing", browser5 "client types: walkin, coop, taxi, self", browser2 stops at a select that is now a free-text box.
+
+
+V10 (26 Oct 2026) - FUEL, COOP AND SUB-HIRE TABLES UNDER PERFORMANCE, ONE FUEL FIGURE, ONE-OFF CARS, CHAMA REMOVED
+NEW: src/fuelCore.js, src/fuelUi.js, src/subhirePanel.js, test/fuelcore.test.mjs, test/browser13.py
+CHANGED: index.html, src/ledger.js, src/coop.js, src/performance.js, src/subhireCore.js, src/fuelAccount.js, src/payRoute.js, src/payUi.js, src/pilot.js, src/pilotConfig.js, src/importer/merge.js, tests (fuel, browser11)
+1. MENU: Performance, then Fuel, Coop, Sub-hire (main menu, nothing added under Pilot/Admin).
+2. FUEL (new table): every fill has an account, Ola or Outside, and the rental it is for (the car's rental for that date, or the one still running, is picked for you). Old fills have NO account: they show as "Untagged" and are NOT counted in Ola
+   (or Outside) until you set the account on the line. Ola balance = opening + top-ups - Ola fills. Fuel audit per rental below the list.
+3. ONE FUEL FIGURE: fuel on a rental = fuel carried on the rental + fills tied to it. A fill paid for a running rental counts at once in Performance, Coop, Sub-hire, the Rentals list and the audit. Nothing is added twice
+   (the expense that Rentals writes for the carried fuel is left out of the sum). Performance has "Fuel per car" (Ola / Outside / Untagged) and its Net now also takes off the sub-hire driver pay.
+4. COOP: columns follow your Excel (staff, department, days, KMs out/in, total KMs, contract, dates, charge, type of vehicle), then Fuel, Driver, Allowance read from the rental, and a row Total (charge + fuel + driver + allowance).
+   "+ Add from a coop rental": pick the rental, type staff, department, KMs, contract no. Footer: column totals and one TOTAL. VAT view button (off by default, display only, 16%, vehicle charge only; data stays without VAT).
+   "Excel schedule" downloads the client layout with Fuel and Driver; with VAT on it gives both totals (excl and incl VAT).
+5. SUB-HIRE (new table): one line per sub-hire rental; pick the sub-hire driver, his rate, status; "Driver jobs" lists all of that driver's jobs.
+6. ONE-OFF CARS: in Rentals, "+ One-off sub-hire car" (e.g. "Prado, one-off", owner optional). It is its own car record, stays a sub-hire (tag), its cost is entered in Sub-hire cost and deducted, and it shows in Rentals, Performance, Sub-hire and the saved Excel (Vehicles sheet, new column oneOff).
+7. CHAMA REMOVED: no menu link, no Pilot tab, not in Payments (no Chama field or list), the Excel import ignores CHAMA lines. Old chama rows already in a file are kept untouched.
+8. PAYMENTS: Money out > Fuel now asks the Account (Ola / Outside) and the rental for a fill.
+TESTS: all node tests pass (fuel.test.mjs updated: old fills untagged = 0 in Ola; drill.test now 5,080 checks because the chama figures are gone); new fuelcore.test.mjs (20 checks); browser13 (24 checks), browser11, browser12 pass.
+NOT RUN: real ExcelJS download of the Coop schedule (the test checks the rows handed to ExcelJS), browser8's Chama section is obsolete (Chama removed).
+
+
+V11 (28 Oct 2026) - STORAGE COPIES, IMPORT QUICK EDIT, PAYMENTS SLIDE FIX, FUEL TRACE + MIXED, PERFORMANCE BY CAR
+NEW: src/carPerf.js, test/browser14.py, test/mixed.test.mjs.   CHANGED: src/tableTools.js, data/repository.js, recover.js, importUi.js, fuelCore.js, fuelUi.js, performance.js, pilot.js, ledger.js, tests (browser13)
+1. PAYMENTS SLIDING: found and fixed. The table tools kept adding a new empty totals strip above the Payments table about 4 times a second (any table with its own search box + 8 or more rows), pushing the table down for no reason. Now one strip per table. (test: browser14)
+2. STORAGE: File > Recover an earlier copy now shows each copy's size and how much room this window has, a Delete button on every copy (the newest copy cannot be deleted), and "Delete all older copies, keep the newest".
+   When the browser says storage is full, the app deletes the older automatic copies itself and saves again. The red "cannot keep your work" notice now has Manage copies and Save file buttons.
+   If storage is blocked or private (not full), nothing can be saved by the browser: use Save file (Excel) and open that next time.
+3. IMPORT REVIEW: every flagged line has "Edit" - change reg, dates, days, amount (client for rentals) right there, Save changes. It is checked again and remembered for the next import of a newer file.
+4. FUEL: the cards are tappable. Ola fills / Ola balance -> the Ola records, Outside fills -> the Outside records, Untagged -> the untagged records; the table scrolls into view and flashes.
+   MIXED: a rental that had an Ola fill AND an outside fill is "Mixed". New card "Mixed rentals", the audit has Type (Walk-in, Coop, Sub-hire, Taxi, Self-drive), Source (Ola / Outside / Mixed / Untagged), Ola and Outside columns, and filters for car, source and type. Coop and sub-hire rentals are included.
+5. TOTAL FUEL EVERYWHERE, TRACED ON TAP: Performance (fuel column, footer, "Fuel used per car"), the Overview (monthly Fuel figures and per-car Fuel) and the Report Fuel card show ONE total, no accounts. Tap the figure and the Fuel screen opens on the same car / dates / rental, where the Ola / Outside / Mixed split is.
+6. PERFORMANCE BY CAR: Overview (Pilot) and Performance now list each car: rentals, days, billed, fuel used, allowance, sub-hire, driver pay, net, net per day, share of net, best first, with a FLEET line.
+TESTS: all node tests pass (mixed.test.mjs new, 8 checks); browser14 (new, 19 checks), browser13, browser12, browser11, persist pass. NOT RUN: real ExcelJS Save/Open.
+
+V11 addition: RESET (File > Recover an earlier copy, top of the list). "Empty everything" or "Keep cars, drivers and clients". Asks the admin PIN, keeps the current work as an automatic copy first (restore it from the same list), keeps settings and the PIN. Does not touch Excel files.
