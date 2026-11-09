@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import { model, createChama, startNextRound, schemeNames } from '../src/chama.js';
+let id = 100; const uid = () => ++id;
+const db = { chama: [] };
+assert.equal(createChama(db, uid, { name: '', amount: 1, slots: 1, first: '2026-01-01', every: 1 }).ok, false);
+const r = createChama(db, uid, { name: 'Test A', amount: 2000, slots: 4, first: '2026-11-01', every: 7, rounds: 2 });
+assert.ok(r.ok); assert.equal(r.count, 8);
+assert.equal(createChama(db, uid, { name: 'test a', amount: 1, slots: 1, first: '2026-01-01', every: 1 }).ok, false, 'duplicate names refused (any case)');
+let m = model(db, 'Test A'); assert.equal(m.slots.length, 4); assert.equal(m.rounds, 2); assert.equal(m.current, 1);
+assert.equal(m.entry(1, 2).dueDate, '2026-11-29', 'round 2 starts after the 4 slots x 7 days');
+m.roundEntries(1).forEach(e => { e.paid = true; e.paidDate = e.dueDate; });
+m = model(db, 'Test A'); assert.equal(m.current, 2, 'current round moves on once round 1 is paid');
+m.roundEntries(2).forEach(e => { e.paid = true; e.paidDate = e.dueDate; });
+assert.equal(startNextRound(db, uid, 'Test A'), 4);
+m = model(db, 'Test A'); assert.equal(m.rounds, 3); assert.equal(m.entry(1, 3).dueDate, '2026-12-27', 'next round keeps the same gap (28 days)');
+assert.equal(m.entry(1, 3).paid, false); assert.equal(m.entry(1, 3).amount, 2000);
+assert.deepEqual(schemeNames(db), ['Test A']);
+console.log('chama tests passed');

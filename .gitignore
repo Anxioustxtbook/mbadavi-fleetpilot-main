@@ -1,12 +1,24 @@
 node_modules/
 dist/
+release/
+release-updated/
+backup-before-v22/
+fleetpilot-payments-v22/
+
 .env*
 !.env.example
+
+# Local ledger data
 *.xlsx
 *.sqlite
 *.db
+*.db-wal
+*.db-shm
 local-data/
+server/data/
+test/workbook.json
+test/out*.json
+
 *.log
 .DS_Store
 Thumbs.db
-release

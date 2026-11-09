@@ -1,0 +1,28 @@
+THE DATABASE OF THE .EXE   (v23: SQLite)
+
+The data is kept in SQLite, using the sqlite module built into Electron's Node (nothing to install or compile).
+The folder is FIXED, %APPDATA%\FleetPilot (not under the app name), so a changed name or ID cannot make it look empty.
+
+WHAT IS IN %APPDATA%\FleetPilot
+  databases\     your database(s), one SQLite file each (<name>.db). Pilot > Database chooses which opens at start (default: the last one used).
+  copies\        one safety copy per month (first save of the month), and one copy before the data layout is upgraded.
+  damaged\       a file that could not be read is moved here, never overwritten.
+  old-files\     the .fpdb.json files of v21 and earlier, kept unchanged after their data was moved into SQLite (first start of v23).
+  settings.json  which database opens at start.
+
+INSIDE A DATABASE
+  meta      format, format version, program version, name, saved at, record count
+  fields    every top-level part of the ledger, in order (a list, or a value such as settings)
+  records   one row per record: list (vehicles, rentals, payments ...), position, id, the record as JSON
+Every save is one transaction: fully written or not at all.
+The active database is a continuous ledger across calendar years; January does not create or switch to a new database. Daily information is queried from SQLite by date, with date indexes for rentals, payments, expenses and bookings. Phone sync compares and applies changes against this same active database.
+
+Installing a newer version replaces the program only. An uninstall keeps this folder.
+Only one copy of the program can run at a time, so two copies can never write the same database.
+SQLite autosaves ledger changes. Excel stays for manual import and export only: File & backup > Save Excel backup / Open Excel backup / Import.
+Import Excel is for the original performance workbook; it now blocks FleetPilot-generated backups to prevent report totals being re-imported as new records. Use Open Excel backup to restore a FleetPilot export.
+Pilot > Database is the database manager: create a database, open one, choose the startup default, or delete an inactive database. The database in use cannot be deleted. Monthly copies are recovery snapshots, not the working database.
+Connect phone pairs a phone and synchronizes its changes with the active SQLite database over the trusted local network.
+Recover an earlier copy lists automatic database safety copies. Delete copy asks for confirmation and removes only that backup file; it does not delete the active database.
+The startup prompt to load a monthly copy is only a fallback if the selected database is missing or damaged; a healthy database opens directly without using a monthly copy.
+To back up by hand: close FleetPilot and copy the .db file.

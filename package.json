@@ -2,26 +2,25 @@
   "name": "mbadavi-fleetpilot",
   "productName": "FleetPilot",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
-  "main": "electron-main.cjs",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "start": "electron .",
     "desktop": "npm run build && electron .",
     "desktop:portable": "npm run build && electron-builder --win portable",
-    "desktop:installer": "npm run build && electron-builder --win nsis"
-  },
-  "dependencies": {
-    "exceljs": "^4.4.0"
+    "desktop:installer": "npm run build && electron-builder --win nsis",
+    "server": "npm --prefix server start",
+    "test:sync": "node --test --test-force-exit --test-timeout=30000 \"test/phone-sync/*.test.*\""
   },
   "devDependencies": {
-    "electron": "^44.9.0",
+    "electron": "44.9.0",
     "electron-builder": "^26.15.3",
-    "vite": "^6.0.0",
-    "vite-plugin-pwa": "^0.21.1",
-    "vite-plugin-singlefile": "^2.3.4"
+    "exceljs": "^4.4.0",
+    "vite": "^6.0.0"
   },
   "allowScripts": {
     "esbuild@0.25.12": true
@@ -30,22 +29,30 @@
     "appId": "com.fleetpilot.desktop",
     "productName": "FleetPilot",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "files": [
       "dist/**/*",
-      "electron-main.cjs",
+      "electron/**/*",
       "package.json"
     ],
     "win": {
       "target": [
         "portable",
         "nsis"
-      ]
+      ],
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "FleetPilot"
     }
   }
 }
